@@ -1,0 +1,131 @@
+Practical Assignment
+
+1 Display all available network interfaces on your system.
+
+2 What interfaces are listed on your system (e.g., eth0, wlan0, lo)?
+
+3 What is the IP address assigned to each interface?
+
+4 Identify your current IPv4 address.
+
+5 Demonstrate how to enable and disable a network interface.
+
+6 How many packets were received (RX) and transmitted (TX) by your interface?
+
+7 Are there any packet errors or drops recorded?
+
+8 Open and view the contents of the /etc/hosts file.
+
+9 How can you edit the hosts file using a text editor?
+
+10 What entries are listed by default in the /etc/hosts file?
+
+11 What is the IP address assigned to localhost?
+
+12 Open and view the /etc/shadow file (requires root privileges).
+
+13 Explain the colon-separated fields in the /etc/shadow file.
+
+14 View the /etc/passwd file and describe what information it contains.
+
+15 Capture DNS queries and responses.
+
+16 Capture ARP packets
+
+17 Filter packets from a specific IP address.
+
+18 Display packets sent to a specific destination port (e.g., 80).
+
+19 Identify an HTTP GET request.
+
+20 View the payload data of a TCP packet.
+
+21 Export packet capture to text or CSV format.
+
+22 Count the total number of packets captured
+
+23 How does Wireshark color-code packets
+
+24 Explain how Wireshark measures round-trip time (RTT).
+
+25 Capture only ICMP traffic (ping).
+
+26 Use traceroute (or tracert on Windows) to show the route packets take to reach google.com.
+
+27 Run traceroute or tracert to different websites and compare the results.
+
+28 Identify local, regional, and international hops in the traceroute output.
+
+29 Note where latency increases significantly and discuss possible causes.
+
+30 How do you find the IP address of a website using nslookup?
+
+31 How do you find mail servers (MX records) for a domain using nslookup?
+
+32 How can nslookup be used for DNS troubleshooting?
+
+33 What is a verbose scan, and how is it performed using nmap?
+
+34 Run an nmap scan on Google’s IP to check open ports and services.
+
+35 Perform an nmap scan on scanme.nmap.org and identify open services.
+
+36 Run a verbose scan on google.com and interpret the output.
+
+37 Perform a verbose scan on your local IP (e.g., 192.168.56.1) to identify open ports.
+
+38 Use ping to send ICMP echo requests to google.com. What does the output show?
+
+39 Ping the local IP 192.168.56.1 and compare the response time.
+
+40 How can ping results help assess network connectivity and latency?
+
+41 Apply a filter to show only TCP packets.
+
+42 Apply a filter to show only HTTP traffic.
+
+43 Capture DNS queries and responses.
+
+44 Capture ARP packets.
+
+45 Filter packets from a specific IP address.
+
+46 Display packets sent to a specific destination port (e.g., 80).
+
+47 Identify an HTTP GET request.
+
+48 View the payload data of a TCP packet.
+
+49 Export the captured packets to a text or CSV file.
+
+50 Count the total number of packets captured.
+
+51 Write a SQL injection command that shows a Reflected XSS example where user input is displayed back on the page without sanitization, demonstrating a potential XSS vulnerability.
+
+52 Retrieves the database at security level low
+
+53 Extracts all the usernames and passwords from the database.
+
+54 Demonstrate the encryption and decryption of Caesar Cipher
+
+55 Demonstrate the encryption and decryption of Vernam Cipher
+
+56 Demonstrate the encryption and decryption of  Vigenère Cipher
+
+57 Demonstrate the encryption and decryption of  Substitution Cipher
+
+58 Demonstrate the encryption and decryption of  Playfair Cipher
+
+59 Demonstrate the encryption and decryption of  Hill Cipher
+
+60 Generates 10 random bytes and displays them in hexadecimal format.
+
+61 Generates 10 random bytes in hex and saves them to output_1.txt. Displays the contents of the file output_1.txt.
+
+62 Creates a file text.txt. Displays the contents of the file text.txt. Computes the MD5 hash of the string and saves it to file_1.hash. Displays the contents of the file file_1.hash.
+
+63 Generates 10 random bytes in hex and saves them to output_1.txt. Displays the contents of the file output_1.txt. lists all the message digest (hash) algorithms supported by OpenSSL
+
+64 Create a text file and then implement the process of Encryption and Decryption using Symmetric Key.  
+
+65 Create a text file and then implement the process of Encryption and Decryption using Asymmetric Key.

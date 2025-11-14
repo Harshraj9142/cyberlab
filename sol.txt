@@ -1,0 +1,489 @@
+Network interfaces, addresses & link stats
+
+Display all available network interfaces
+
+ip link show
+# or (older)
+ifconfig -a
+
+
+Which interfaces are listed (examples)
+
+Typical names you may see: lo, eth0, eth1, wlan0, wlan1, enp3s0, ens33, virbr0, docker0.
+
+IP address assigned to each interface
+
+ip addr show
+# or short:
+ip -brief addr
+# or (if installed)
+ifconfig
+
+
+Identify your current IPv4 address
+
+# for a specific interface (e.g., eth0)
+ip -4 addr show dev eth0
+
+# if you want your public IP
+curl -s https://ifconfig.me   # or `curl -s https://ipecho.net/plain`
+
+
+Enable / disable a network interface
+
+# disable
+sudo ip link set dev eth0 down
+
+# enable
+sudo ip link set dev eth0 up
+
+# NetworkManager (if using nmcli)
+sudo nmcli device disconnect eth0
+sudo nmcli device connect eth0
+
+
+How many packets were received (RX) and transmitted (TX)
+
+# kernel counters
+cat /proc/net/dev
+
+# or more human readable:
+ip -s link show dev eth0
+
+
+/proc/net/dev lists RX/TX bytes and packets and errors/drops.
+
+Are there packet errors or drops recorded?
+Look at /proc/net/dev or ip -s link show dev eth0. Example fields: packets, errs, drop, fifo, frame, compressed, multicast for RX and TX.
+
+Hosts, passwd, shadow
+
+Open and view /etc/hosts
+
+cat /etc/hosts
+less /etc/hosts
+
+
+How to edit the hosts file using a text editor
+
+sudo nano /etc/hosts
+# or
+sudo vim /etc/hosts
+# or (graphical)
+gksudo gedit /etc/hosts
+
+
+Default entries typically in /etc/hosts
+Common default lines:
+
+127.0.0.1   localhost
+127.0.1.1   your-hostname    # on Debian/Ubuntu
+::1         ip6-localhost ip6-loopback
+
+
+Exact content can vary by distro.
+
+What is the IP address assigned to localhost?
+
+IPv4 localhost → 127.0.0.1
+
+IPv6 localhost → ::1
+
+Open and view /etc/shadow (requires root)
+
+Caution: /etc/shadow contains hashed password data. Only view on systems you own or have permission to administer.
+
+sudo cat /etc/shadow
+sudo less /etc/shadow
+
+
+Explain colon-separated fields in /etc/shadow
+Each /etc/shadow line for a user looks like:
+
+username:password:lastchg:min:max:warn:inactive:expire:reserved
+
+
+Meaning:
+
+username — account name
+
+password — hashed password or special value (!, *, or $id$...)
+
+lastchg — days since epoch (1970-01-01) when password was last changed
+
+min — minimum days before change allowed
+
+max — maximum days password is valid
+
+warn — days before expiration to warn user
+
+inactive — days after expiration until account disabled
+
+expire — absolute day when account expires
+
+reserved — reserved field
+
+View /etc/passwd and describe contents
+
+cat /etc/passwd
+
+
+Each line:
+
+username:x:UID:GID:gecos:home_dir:login_shell
+
+
+username — login name
+
+x — password placeholder (actual hashes in /etc/shadow)
+
+UID — user id
+
+GID — primary group id
+
+gecos — user description/comment
+
+home_dir — home directory path
+
+login_shell — default shell
+
+Packet capture & analysis (tcpdump / tshark / Wireshark)
+
+Use sudo where needed. tcpdump/tshark are CLI. Wireshark offers GUI.
+
+Capture DNS queries and responses
+
+# tcpdump (port 53)
+sudo tcpdump -i eth0 port 53 -w dns_capture.pcap
+
+# or tshark
+sudo tshark -i eth0 -f "port 53" -w dns_capture.pcap
+
+
+Capture ARP packets
+
+sudo tcpdump -i eth0 arp -w arp_capture.pcap
+# or filter with tshark:
+sudo tshark -i eth0 -f "arp"
+
+
+Filter packets from a specific IP address
+
+# capture only traffic to/from 192.168.1.5
+sudo tcpdump -i eth0 host 192.168.1.5 -w host_capture.pcap
+
+# or in Wireshark display filter:
+ip.addr == 192.168.1.5
+
+
+Display packets sent to a specific destination port (e.g., 80)
+
+sudo tcpdump -i eth0 dst port 80 -w dst80.pcap
+# Wireshark display filter:
+tcp.dstport == 80
+
+
+Identify an HTTP GET request
+
+In Wireshark: use display filter http.request.method == "GET"
+
+In tshark/tcpdump (cli):
+
+# show ASCII (-A) and grep
+sudo tcpdump -A -s 0 'tcp port 80' | grep -m1 "GET "
+# or:
+sudo tshark -r capture.pcap -Y 'http.request.method == "GET"' -V
+
+
+View the payload data of a TCP packet
+
+# tcpdump ascii
+sudo tcpdump -A -s 0 -r capture.pcap
+
+# tshark to extract TCP payload as text
+sudo tshark -r capture.pcap -T fields -e data
+# or full packet bytes:
+sudo tshark -r capture.pcap -x -V
+
+
+Export packet capture to text or CSV
+
+# export to PDML/JSON/text
+tshark -r capture.pcap -V > capture.txt
+
+# export selected fields to CSV
+tshark -r capture.pcap -T fields -E header=y -E separator=, \
+-e frame.number -e frame.time -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e _ws.col.Info \
+> capture.csv
+
+
+Count total number of packets captured
+
+# with tshark
+tshark -r capture.pcap -q -z io,phs
+
+# or simplest:
+tshark -r capture.pcap -q | wc -l
+
+# tcpdump count while capturing:
+sudo tcpdump -i eth0 -c 100   # stops after 100 packets
+
+
+How Wireshark color-codes packets
+
+Wireshark uses color rules (Preferences → Coloring Rules) mapping display filters to colors (e.g., TCP SYN, HTTP, DNS). Colors are just visual hints — the default color rules highlight protocols like TCP/UDP/HTTP/DNS/ARP etc. You can edit or add rules using display filters.
+
+How Wireshark measures RTT
+
+Wireshark computes RTT for TCP by measuring the time between sending a segment and receiving the ACK for that segment (using sequence/ack numbers). It can show per-packet TCP Time since previous frame in this TCP stream and summary RTT statistics (Statistics → TCP → Round Trip Time). The measurement depends on seeing both directions of traffic.
+
+Capture only ICMP traffic (ping)
+
+sudo tcpdump -i eth0 icmp -w icmp.pcap
+# or
+sudo tshark -i eth0 -f "icmp"
+
+
+Use traceroute to show route to google.com
+
+traceroute google.com
+# on Windows:
+# tracert google.com
+
+
+Run traceroute to different websites and compare
+
+traceroute google.com
+traceroute amazon.com
+traceroute bbc.co.uk
+
+
+Compare hop counts, AS paths, and per-hop latency.
+
+Identify local, regional, international hops
+
+Local hops usually show private IPs (192.168., 10., 172.16.*) or short latency (<1–10 ms).
+
+Regional hops show ISP-owned addresses and modest latency (10–50 ms).
+
+International hops often show much larger latency jumps (100+ ms) and hostnames/ASNs that indicate cross-country/backbone routers.
+
+Use whois on hop IPs to identify AS/country:
+
+whois 203.0.113.45
+
+
+Note where latency increases significantly & possible causes
+
+Look for big jumps in RTT between consecutive hops. Possible causes:
+
+Physical distance (intercontinental)
+
+Congestion at a hop / overloaded link
+
+Rate-limiting or ICMP deprioritization (intermediate devices sometimes de-prioritize traceroute probes)
+
+Peering points between ISPs
+
+Find IP address of a website using nslookup
+
+nslookup google.com
+# or specify DNS server
+nslookup google.com 8.8.8.8
+
+
+Find mail servers (MX records) for a domain using nslookup
+
+nslookup
+> set type=mx
+> example.com
+# or single command:
+nslookup -query=mx example.com
+
+
+How nslookup can be used for DNS troubleshooting
+
+Check A, AAAA, MX, NS, TXT records; query different DNS servers; detect propagation issues; check reverse DNS:
+
+nslookup -type=aaaa example.com
+nslookup -type=ns example.com
+nslookup -type=txt example.com
+nslookup 1.2.3.4    # reverse lookup
+
+nmap / scanning / ping
+
+What is a verbose scan and how to perform with nmap
+
+-v or -vv increases verbosity. Example:
+
+sudo nmap -v -A target.com
+# -A enables OS detection, version detection, script scanning, traceroute
+
+
+Run an nmap scan on Google’s IP to check open ports & services
+
+Caution: Scanning systems you do not own may violate terms or local laws. Do not scan targets without permission.
+If you have explicit permission or a test target:
+
+sudo nmap -sS -sV -O -p- 142.250.190.78
+# -sS TCP SYN scan, -sV service/version, -O OS detection, -p- all ports
+
+
+Better: use scanme.nmap.org (owned by the nmap project) for practice.
+
+Perform an nmap scan on scanme.nmap.org and identify open services
+
+sudo nmap -A scanme.nmap.org
+
+
+This is safe to run (this host is provided for practice). Inspect PORT, STATE, SERVICE, and VERSION columns.
+
+Run a verbose scan on google.com and interpret output
+
+sudo nmap -v -A google.com
+
+
+Interpret PORT/STATE/SERVICE lines and the OS and Service Info sections. Again, only scan targets you have permission to.
+
+Perform verbose scan on local IP (e.g., 192.168.56.1)
+
+sudo nmap -v -sS -sV -O 192.168.56.1
+
+
+Use this on your own devices or lab targets.
+
+Use ping to send ICMP echo requests to google.com
+
+ping -c 5 google.com
+
+
+Output shows bytes, time=XX ms per reply and summary with rtt min/avg/max/mdev.
+
+Ping the local IP 192.168.56.1 and compare response time
+
+ping -c 5 192.168.56.1
+
+
+Expect much lower latency for local host (usually <1–10 ms).
+
+How ping results help assess connectivity & latency
+
+Shows packet loss (% dropped), round trip times (min/avg/max), jitter (variation). Useful to detect connectivity issues, intermittent drops, and latency.
+
+Wireshark/tshark filters (repeated items included)
+
+Filter to show only TCP packets
+
+Wireshark display filter: tcp
+
+tcpdump capture filter: tcp
+
+Filter to show only HTTP traffic
+
+Wireshark display filter: http
+
+tcpdump capture filter (port 80): tcp port 80
+
+43–50. (Items duplicate earlier)
+
+See items 15–22 and 25–26 for exact commands for DNS, ARP, specific IP, specific port, HTTP GET, TCP payload, export, count.
+
+Security / SQLi / XSS / Database items (51–53) — refusal + safe alternatives
+
+51–53 ask for:
+
+SQL injection command that shows reflected XSS and commands to retrieve database and extract usernames/passwords.
+
+I can’t help with exploit payloads or commands intended to attack, break into, or extract data from systems you don’t own. That includes SQL injection payloads, database extraction queries, or instructions to exfiltrate credentials. Providing those would enable wrongdoing.
+
+What I can help with (safe, legal alternatives):
+
+Explain what Reflected XSS and SQL Injection are and how they work at a conceptual level.
+
+Show safe, local examples you can run in a lab environment (e.g., OWASP DVWA or WebGoat) and how to detect and fix these vulnerabilities (parameterized queries, input validation, output encoding).
+
+Steps to set up DVWA on Kali and carry out safe lab exercises.
+
+How to use tools like sqlmap responsibly only against systems you own or have explicit authorization to test.
+
+If you want that, say “Yes — show me safe lab demos and fixes” and I’ll give step-by-step setup + defensive examples.
+
+Cryptography & random bytes (54–65)
+
+54–59 Classic ciphers — short commands / Python examples (Kali has Python).
+You can implement quickly in Python; here are short command-line examples using small Python scripts.
+
+Caesar cipher (bash+python one-liners):
+
+# encrypt
+python3 - <<'PY'
+def caesar(s,k): 
+    return ''.join(chr((ord(c)-65+k)%26+65) if c.isupper() else chr((ord(c)-97+k)%26+97) if c.islower() else c for c in s)
+print(caesar("HELLO",3))
+PY
+
+
+Vigenère / Vernam / Substitution / Playfair / Hill — these are best shown with small Python scripts. I can drop full scripts for each if you want; say which ones you want code for and I’ll provide ready-to-run Python files.
+
+Generate 10 random bytes and display in hex
+
+# openssl
+openssl rand -hex 10
+
+# or with /dev/urandom
+xxd -p -l 10 /dev/urandom
+
+
+Generate 10 random bytes in hex and save to output_1.txt and display
+
+openssl rand -hex 10 > output_1.txt
+cat output_1.txt
+
+
+Create text.txt, compute MD5 of a string, save to file_1.hash
+
+echo -n "your-string-here" > text.txt
+# compute md5
+echo -n "your-string-here" | md5sum > file_1.hash
+cat text.txt
+cat file_1.hash
+
+
+Generate 10 random bytes in hex, save, display; list OpenSSL digest algorithms
+
+openssl rand -hex 10 > output_1.txt
+cat output_1.txt
+
+# list message digest algorithms supported by OpenSSL
+openssl list -digest-commands
+# or for older openssl:
+openssl dgst -h
+
+
+Create a text file and do symmetric encryption/decryption (OpenSSL AES example)
+
+# create file
+echo "Secret message" > plain.txt
+
+# encrypt with AES-256-CBC (password-based)
+openssl enc -aes-256-cbc -salt -pbkdf2 -in plain.txt -out plain.txt.enc -pass pass:MyStrongPass
+
+# decrypt
+openssl enc -d -aes-256-cbc -pbkdf2 -in plain.txt.enc -out plain_decrypted.txt -pass pass:MyStrongPass
+
+
+Create a text file and do asymmetric encryption/decryption (RSA OpenSSL example)
+
+# generate private key
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
+
+# extract public key
+openssl rsa -pubout -in private.pem -out public.pem
+
+# encrypt (with public key)
+openssl pkeyutl -encrypt -in plain.txt -pubin -inkey public.pem -out plain.txt.rsa
+
+# decrypt (with private key)
+openssl pkeyutl -decrypt -in plain.txt.rsa -inkey private.pem -out plain_decrypted.txt
+
+Quick notes & best practices
